@@ -8,25 +8,28 @@
 --
 --	)
 	board AS (select board b, false as recurs_over from sudokus limit 1),
-	unknowns as (select p from positions p, board b where b[p] = 0),
 	associated_values as (
 		select
 			p, 
 			array_cat(
 				array_cat(
-					array_agg(b[d + 9 * ((p - 1) / 9)]), -- board_row,
-					array_agg(b[1 + (d - 1) * 9 + (p - 1) % 9]) -- board_col,
+					array_agg(b[d1.d + 9 * ((p - 1) / 9)]), -- board_row,
+					array_agg(b[1 + (d1.d - 1) * 9 + (p - 1) % 9]) -- board_col,
 				),
 				array_agg(b[
 					-- The block iterator
-					((d-1)/ 3) * 9 + (d-1) % 3 +
+					((d1.d-1)/ 3) * 9 + (d1.d - 1) % 3 +
 					-- Find the block base number from the position
 					-- block base number : (((p - 1) / 27) * 3 + ((p - 1) % 9) / 3)
 					((((p - 1) / 27) * 3 + ((p - 1) % 9) / 3) / 3) * 27 + (((p - 1) / 27) * 3 + ((p - 1) % 9) / 3) % 3 * 3  +
 					1]
 				) -- board_block
 			) as neighb
-		from unknowns, digits, board
+		from 
+			positions, 
+			digits d1, 
+			board
+		where b[p] = 0
 		group by p order by p
 	),
 	possibilities as (
